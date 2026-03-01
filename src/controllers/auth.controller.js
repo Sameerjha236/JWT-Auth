@@ -1,16 +1,35 @@
-import { createUser, validateCredentials } from "../services/auth.service.js";
+import {
+  createUser,
+  removeUser,
+  validateCredentials,
+} from "../services/auth.service.js";
 
 export const AuthController = {
-  login: (req, res) => {
+  login: async (req, res) => {
     const data = req.body;
-    if (validateCredentials(data))
-      return res.json({ message: "Valid credentials" });
-    res.status(401).json({ message: "Invalid credentials" });
+    const user = await validateCredentials(data);
+
+    if (!user)
+      return res.status(401).json({ message: "Invalid username or password" });
+
+    return res.json({ message: "Logged in succesfully", user });
   },
 
-  signup: (req, res) => {
+  signup: async (req, res) => {
     const data = req.body;
-    const user = createUser(data);
-    res.json({ message: "User created", user });
+    const user = await createUser(data);
+    return res.json({ message: "User created", user });
+  },
+
+  delete: (req, res) => {
+    const data = req.body;
+    if (removeUser(data)) {
+      return res.json({ message: "User Deleted succesfully" });
+    }
+    return res.json({ message: "User did not exist" });
+  },
+
+  updateRole: (req, res) => {
+    const data = req.body;
   },
 };

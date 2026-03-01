@@ -1,10 +1,37 @@
-const db = [];
+import User from "../models/user.model.js";
+import bcrypt from "bcrypt";
 
-export const validateCredentials = (userData) => {
-  return db.some((u) => u.name === userData.name);
+export const validateCredentials = async (userData) => {
+  const user = await User.findOne({ username: userData.username });
+
+  if (!user) {
+    return null;
+  }
+
+  const checkPassword = await bcrypt.compare(userData.password, user.password);
+  if (!checkPassword) return null;
+
+  return {
+    id: user._id,
+    username: user.username,
+    role: user.role,
+  };
 };
 
-export const createUser = (userData) => {
-  db.push(userData);
-  return userData;
+export const createUser = async (userData) => {
+  const hashedPassword = await bcrypt.hash(userData.password, 10);
+  userData.password = hashedPassword;
+
+  const newUser = await User.create(userData);
+
+  return {
+    id: newUser._id,
+    username: newUser.username,
+    role: newUser.role,
+  };
+};
+
+export const removeUser = async (userData) => {
+  const result = await User.deleteOne({ username: userData.username });
+  return result.deletedCount > 0;
 };
