@@ -1,8 +1,6 @@
 import User from "../models/user.model.js";
-import crypto from "crypto";
 import bcrypt from "bcrypt";
-
-import { sessions } from "../store/session.store.js";
+import jwt from "jsonwebtoken";
 
 export const validateCredentials = async (userData) => {
   const user = await User.findOne({ username: userData.username });
@@ -14,19 +12,12 @@ export const validateCredentials = async (userData) => {
   const checkPassword = await bcrypt.compare(userData.password, user.password);
   if (!checkPassword) return null;
 
-  const sessionId = crypto.randomUUID();
-  sessions[sessionId] = {
-    id: user._id,
-    role: user.role,
-  };
-  return {
-    sessionId: sessionId,
-    user: {
-      id: user._id,
-      username: user.username,
-      role: user.role,
-    },
-  };
+  const payload = { id: user._id, username: user.username, role: user.role };
+
+  const token = jwt.sign(payload, process.env.SECRET_KEY, {
+    expiresIn: "1h",
+  });
+  return token;
 };
 
 export const createUser = async (userData) => {

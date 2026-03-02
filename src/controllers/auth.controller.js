@@ -3,17 +3,16 @@ import {
   removeUser,
   validateCredentials,
 } from "../services/auth.service.js";
-import { sessions } from "../store/session.store.js";
 
 export const AuthController = {
   login: async (req, res) => {
     const data = req.body;
-    const result = await validateCredentials(data);
+    const token = await validateCredentials(data);
 
-    if (!result)
+    if (!token)
       return res.status(401).json({ message: "Invalid username or password" });
 
-    res.cookie("sessionId", result.sessionId, {
+    res.cookie("token", token, {
       httpOnly: true,
       secure: false,
       sameSite: "lax",
@@ -22,7 +21,6 @@ export const AuthController = {
 
     return res.json({
       message: "Logged in succesfully",
-      user: result.user,
     });
   },
 
@@ -37,7 +35,7 @@ export const AuthController = {
     if (removeUser(data)) {
       return res.json({ message: "User Deleted succesfully" });
     }
-    res.clearCookie("sessionId");
+    res.clearCookie("token");
     return res.json({ message: "User did not exist" });
   },
 
@@ -46,9 +44,7 @@ export const AuthController = {
   },
 
   logout: (req, res) => {
-    const sessionId = req.cookies.sessionId;
-    delete sessions[sessionId];
-    res.clearCookie("sessionId");
+    res.clearCookie("token");
     return res.json({ message: "Logged out succesfully" });
   },
 };

@@ -1,19 +1,20 @@
-import { sessions } from "../store/session.store.js";
+import jwt from "jsonwebtoken";
 
 export const authMiddleware = (req, res, next) => {
-  const sessionId = req.cookies.sessionId;
+  const token = req.cookies.token;
 
-  if (!sessionId) {
-    return res.status(401).json({ message: "Session ID missing" });
+  if (!token) {
+    return res.status(401).json({ message: "Token is missing" });
   }
 
-  const session = sessions[sessionId];
+  try {
+    const decoded = jwt.verify(token, process.env.SECRET_KEY);
 
-  if (!session) {
-    return res.status(401).json({ message: "Invalid or expired session" });
+    req.user = decoded; // VERY IMPORTANT
+    next();
+  } catch (error) {
+    return res.status(401).json({
+      message: "Invalid or expired token",
+    });
   }
-
-  req.user = session;
-
-  next();
 };
