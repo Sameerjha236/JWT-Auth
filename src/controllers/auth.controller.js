@@ -7,12 +7,22 @@ import {
 export const AuthController = {
   login: async (req, res) => {
     const data = req.body;
-    const user = await validateCredentials(data);
+    const result = await validateCredentials(data);
 
-    if (!user)
+    if (!result)
       return res.status(401).json({ message: "Invalid username or password" });
 
-    return res.json({ message: "Logged in succesfully", user });
+    res.cookie("sessionId", result.sessionId, {
+      httpOnly: true,
+      secure: false,
+      sameSite: "lax",
+      maxAge: 1000 * 60 * 60, // 1 hour
+    });
+
+    return res.json({
+      message: "Logged in succesfully",
+      user: result.user,
+    });
   },
 
   signup: async (req, res) => {
@@ -26,6 +36,7 @@ export const AuthController = {
     if (removeUser(data)) {
       return res.json({ message: "User Deleted succesfully" });
     }
+    res.clearCookie("sessionId");
     return res.json({ message: "User did not exist" });
   },
 
