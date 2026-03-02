@@ -3,6 +3,7 @@ import {
   removeUser,
   validateCredentials,
 } from "../services/auth.service.js";
+import { sessions } from "../store/session.store.js";
 
 export const AuthController = {
   login: async (req, res) => {
@@ -42,5 +43,12 @@ export const AuthController = {
 
   updateRole: (req, res) => {
     const data = req.body;
+  },
+
+  logout: (req, res) => {
+    const sessionId = req.cookies.sessionId;
+    delete sessions[sessionId];
+    res.clearCookie("sessionId");
+    return res.json({ message: "Logged out succesfully" });
   },
 };
