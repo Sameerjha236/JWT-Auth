@@ -40,15 +40,11 @@ export const AuthController = {
 
   delete: (req, res) => {
     const data = req.body;
-    if (removeUser(data)) {
-      res.clearCookie("token");
-      return res.json({ message: "User Deleted succesfully" });
+    if (!removeUser(data)) {
+      return res.json({ message: "User did not exist" });
     }
-    return res.json({ message: "User did not exist" });
-  },
-
-  updateRole: (req, res) => {
-    const data = req.body;
+    res.clearCookie("token");
+    return res.json({ message: "User Deleted succesfully" });
   },
 
   logout: (req, res) => {
