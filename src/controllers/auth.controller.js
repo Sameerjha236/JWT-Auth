@@ -26,16 +26,24 @@ export const AuthController = {
 
   signup: async (req, res) => {
     const data = req.body;
-    const user = await createUser(data);
+    const { user, token } = await createUser(data);
+
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: false,
+      sameSite: "lax",
+      maxAge: 1000 * 60 * 60, // 1 hour
+    });
+
     return res.json({ message: "User created", user });
   },
 
   delete: (req, res) => {
     const data = req.body;
     if (removeUser(data)) {
+      res.clearCookie("token");
       return res.json({ message: "User Deleted succesfully" });
     }
-    res.clearCookie("token");
     return res.json({ message: "User did not exist" });
   },
 

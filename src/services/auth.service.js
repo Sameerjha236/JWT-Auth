@@ -26,10 +26,22 @@ export const createUser = async (userData) => {
 
   const newUser = await User.create(userData);
 
-  return {
+  const payload = {
     id: newUser._id,
     username: newUser.username,
     role: newUser.role,
+  };
+
+  const token = jwt.sign(payload, process.env.SECRET_KEY, {
+    expiresIn: "1h",
+  });
+
+  return {
+    user: {
+      username: newUser.username,
+      role: newUser.role,
+    },
+    token,
   };
 };
 
